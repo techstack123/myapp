@@ -30,29 +30,37 @@ public class WifiListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.wifi_list);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#E43F3F")));
+        getSupportActionBar().setTitle("WIFI LIST");
         wifiListView=(ListView)findViewById(R.id.wifiList);
         mWifi= (WifiManager)getSystemService(Context.WIFI_SERVICE);
         registerReceiver(w, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        if(!mWifi.isWifiEnabled())
-            Toast.makeText(getApplicationContext(),"please enable wifi",Toast.LENGTH_LONG).show();
+        addItemsToList();
+        if(!mWifi.isWifiEnabled()) {
+            removeItemsfromList();
+            Toast.makeText(getApplicationContext(), "Please enable WIFI", Toast.LENGTH_LONG).show();
+        }
             mWifi.startScan();
             addItemsToList();
         }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Toast.makeText(getApplication(),"",Toast.LENGTH_SHORT).show();
-    }
+
 
     public void startScan(View v){
-        if(!mWifi.isWifiEnabled())
-            Toast.makeText(getApplicationContext(),"please enable wifi",Toast.LENGTH_LONG).show();
+        if(!mWifi.isWifiEnabled()) {
+            removeItemsfromList();
+            Toast.makeText(getApplicationContext(), "Please enable WIFI", Toast.LENGTH_LONG).show();
+        }
             mWifi.startScan();
             addItemsToList();
+    }
+    public void removeItemsfromList(){
+        for (int i=0;i<wifiList.size();i++)
+        {
+            wifiList.remove(i);
+        }
+        wifiListAdapter = new WifiListAdapter(this, wifiList);
+        wifiListView.setAdapter(wifiListAdapter);
     }
     public void addItemsToList(){
 

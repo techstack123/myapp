@@ -57,8 +57,8 @@ public class WifiListAdapter  extends BaseAdapter{
             viewHolder = (WifiListViewHolder) v.getTag();
         }
         viewHolder.SSID.setText(mList.get(position).SSID);
-        viewHolder.frequency.setText("Frequency " + mList.get(position).frequency+"BSSID :" + mList.get(position).de);
-        viewHolder.bssid.setText("BSSID :" + mList.get(position).BSSID+"level :" + mList.get(position).level);
+        viewHolder.frequency.setText("Frequency " + mList.get(position).frequency);
+        viewHolder.bssid.setText("BSSID :" + mList.get(position).BSSID+"  Level :  " + mList.get(position).level +"dBm");
         return v;
     }
 }
