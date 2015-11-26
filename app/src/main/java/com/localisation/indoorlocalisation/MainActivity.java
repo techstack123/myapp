@@ -5,14 +5,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -24,46 +32,94 @@ public class MainActivity extends AppCompatActivity {
     List<String> sensorList;
     CompleteListAdapter sensorListAdapter;
     ListView sensorListView;
-    WifiReceiver w;
-    List<android.net.wifi.ScanResult> wifiList;
-    WifiManager mWifi;
+
+
+    private ListView mDrawerList;
+    private DrawerLayout mDrawerLayout;
+    private ArrayAdapter<String> mAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private String mActivityTitle;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#E43F3F")));
+        mDrawerList=(ListView)findViewById(R.id.navList);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         SensorManager sMgr;
         sMgr = (SensorManager) this.getSystemService(SENSOR_SERVICE);
         Log.d("Sensor", "aa" + sMgr.getSensorList(Sensor.TYPE_ALL));
         List<Sensor> sensorLists = (List) sMgr.getSensorList(Sensor.TYPE_ALL);
-        mWifi= (WifiManager)getSystemService(Context.WIFI_SERVICE);
-        registerReceiver(w,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        mWifi.startScan();
+
         sensorList = new ArrayList<String>();
         for (int i = 0; i < sensorLists.size(); i++) {
             sensorList.add(""+sensorLists.get(i).getName());
         }
         sensorListView = (ListView) findViewById(R.id.sensorList);
-        sensorListAdapter = new CompleteListAdapter(this, sensorList);
+        sensorListAdapter = new CompleteListAdapter(this, sensorLists);
         sensorListView.setAdapter(sensorListAdapter);
-        wifiList=mWifi.getScanResults();
-        sensorList.add("Network Below");
-        for (int i = 0; i < wifiList.size(); i++) {
-            sensorList.add(""+wifiList.get(i).toString());
-            Toast.makeText(getApplicationContext(), "" + wifiList.get(i).SSID, Toast.LENGTH_LONG).show();
 
-        }
+        addDrawerItems();
+        setupDrawer();
+
     }
-class WifiReceiver extends BroadcastReceiver{
+    private void addDrawerItems() {
+        final String[] osArray = {"Home", "WIFI"};
+        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
+        mDrawerList.setAdapter(mAdapter);
+
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                  Toast.makeText(MainActivity.this, "" + osArray[position], Toast.LENGTH_SHORT).show();
+                if(position==1)
+                    startActivity(new Intent(getApplicationContext(),WifiListActivity.class));
+
+                mDrawerLayout.closeDrawers();
+
+
+            }
+        });
+    }
+    private void setupDrawer() {
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getSupportActionBar().setTitle("Choose ");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getSupportActionBar().setTitle(mActivityTitle);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
     @Override
-    public void onReceive(Context context, Intent intent) {
-        wifiList=mWifi.getScanResults();
-        for (int i = 0; i < wifiList.size(); i++) {
-            sensorList.add(""+wifiList.get(i).toString());
-            Log.d("Wifi",wifiList.get(i).toString());
-        }
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
     }
-}
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -80,6 +136,10 @@ class WifiReceiver extends BroadcastReceiver{
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            return true;
+        }
+        // Activate the navigation drawer toggle
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
 
